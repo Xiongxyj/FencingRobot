@@ -1,0 +1,471 @@
+diff --git a/src/mjlab/tasks/tracking/mdp/commands.py b/src/mjlab/tasks/tracking/mdp/commands.py
+index bc74418b9..debb0941d 100644
+--- a/src/mjlab/tasks/tracking/mdp/commands.py
++++ b/src/mjlab/tasks/tracking/mdp/commands.py
+@@ -1,7 +1,10 @@
+ from __future__ import annotations
+ 
+ import copy
++import glob
+ import math
++import os
++from collections.abc import Sequence
+ from dataclasses import dataclass, field
+ from typing import TYPE_CHECKING, Literal
+ 
+@@ -9,6 +12,7 @@ import numpy as np
+ import torch
+ 
+ from mjlab.managers import CommandTerm, CommandTermCfg
++from mjlab.utils.forward_kinematics import ForwardKinematics
+ from mjlab.utils.lab_api.math import (
+   matrix_from_quat,
+   quat_apply,
+@@ -33,31 +37,121 @@ if TYPE_CHECKING:
+ _DESIRED_FRAME_COLORS = ((1.0, 0.5, 0.5), (0.5, 1.0, 0.5), (0.5, 0.5, 1.0))
+ 
+ 
++def _expand_motion_files(motion_file: str | Sequence[str]) -> list[str]:
++  """A path, a directory of ``*.npz``, a glob, or a list of any of these."""
++  items = [motion_file] if isinstance(motion_file, str) else list(motion_file)
++  paths: list[str] = []
++  for item in items:
++    item = os.path.expanduser(item)
++    if os.path.isdir(item):
++      found = sorted(glob.glob(os.path.join(item, "*.npz")))
++    elif glob.has_magic(item):
++      found = sorted(glob.glob(item))
++    else:
++      found = [item]
++    if not found:
++      raise FileNotFoundError(f"No motion files match {item!r}")
++    paths.extend(found)
++  return paths
++
++
+ class MotionLoader:
++  """Reference motion as root and joint states; tracked bodies come from FK.
++
++  [FencingRobot] Multi-clip version for the official SuperMimic code: clips are
++  concatenated in order and ``motion_ends`` holds each clip's exclusive end frame.
++  Only the root (entity row 0) and the joints are read from each file;
++  ``body_state(frames)`` computes the tracked bodies with ``fk``. The
++  ``body_*_w`` arrays of upstream are kept, filled from the same FK.
++  """
++
+   def __init__(
+-    self, motion_file: str, body_indexes: torch.Tensor, device: str = "cpu"
++    self,
++    motion_file: str | Sequence[str],
++    body_indexes: torch.Tensor,
++    device: str = "cpu",
++    fk: ForwardKinematics | None = None,
+   ) -> None:
+-    data = np.load(motion_file)
+-    self.joint_pos = torch.tensor(data["joint_pos"], dtype=torch.float32, device=device)
+-    self.joint_vel = torch.tensor(data["joint_vel"], dtype=torch.float32, device=device)
+-    self._body_pos_w = torch.tensor(
+-      data["body_pos_w"], dtype=torch.float32, device=device
+-    )
+-    self._body_quat_w = torch.tensor(
+-      data["body_quat_w"], dtype=torch.float32, device=device
+-    )
+-    self._body_lin_vel_w = torch.tensor(
+-      data["body_lin_vel_w"], dtype=torch.float32, device=device
+-    )
+-    self._body_ang_vel_w = torch.tensor(
+-      data["body_ang_vel_w"], dtype=torch.float32, device=device
++    self.motion_files = _expand_motion_files(motion_file)
++    keys = ("joint_pos", "joint_vel")
++    root_keys = ("body_pos_w", "body_quat_w", "body_lin_vel_w", "body_ang_vel_w")
++    arrays: dict[str, list[np.ndarray]] = {k: [] for k in keys + root_keys}
++    lengths = []
++    for path in self.motion_files:
++      with np.load(path) as data:
++        for k in keys:
++          arrays[k].append(data[k])
++        for k in root_keys:
++          arrays[k].append(data[k][:, 0])
++        lengths.append(data["joint_pos"].shape[0])
++
++    def cat(k: str) -> torch.Tensor:
++      return torch.tensor(
++        np.concatenate(arrays[k]), dtype=torch.float32, device=device
++      )
++
++    self.joint_pos = cat("joint_pos")
++    self.joint_vel = cat("joint_vel")
++    self.root_pos_w = cat("body_pos_w")
++    self.root_quat_w = cat("body_quat_w")
++    self.root_lin_vel_w = cat("body_lin_vel_w")
++    self.root_ang_vel_w = cat("body_ang_vel_w")
++    self.motion_ends = torch.tensor(
++      np.cumsum(lengths), dtype=torch.long, device=device
+     )
+-    self._body_indexes = body_indexes
+-    self.body_pos_w = self._body_pos_w[:, self._body_indexes]
+-    self.body_quat_w = self._body_quat_w[:, self._body_indexes]
+-    self.body_lin_vel_w = self._body_lin_vel_w[:, self._body_indexes]
+-    self.body_ang_vel_w = self._body_ang_vel_w[:, self._body_indexes]
+     self.time_step_total = self.joint_pos.shape[0]
++    self._body_indexes = body_indexes
++    self.body_indexes = body_indexes
++    self.fk = fk
++    if fk is None:
++      # Upstream behaviour (e.g. scripts/csv_to_npz.py): stored tracked bodies.
++      idx = body_indexes.cpu().numpy()
++      stored = []
++      for k in root_keys:
++        parts = []
++        for path in self.motion_files:
++          with np.load(path) as data:
++            parts.append(data[k][:, idx])
++        stored.append(
++          torch.tensor(np.concatenate(parts), dtype=torch.float32, device=device)
++        )
++      self.body_pos_w, self.body_quat_w, self.body_lin_vel_w, self.body_ang_vel_w = (
++        stored
++      )
++      return
++    with torch.no_grad():
++      frames = torch.arange(self.time_step_total, device=device)
++      states = [self.body_state(c) for c in frames.split(65536)]
++    self.body_pos_w, self.body_quat_w, self.body_lin_vel_w, self.body_ang_vel_w = (
++      torch.cat(parts) for parts in zip(*states, strict=True)
++    )
++
++  def body_state(
++    self, frames: torch.Tensor
++  ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
++    """Tracked-body ``(pos, quat, lin_vel, ang_vel)`` at ``frames``, world frame
++    without env origins; shapes ``(*frames.shape, B, 3|4)``."""
++    if self.fk is None:
++      return (
++        self.body_pos_w[frames],
++        self.body_quat_w[frames],
++        self.body_lin_vel_w[frames],
++        self.body_ang_vel_w[frames],
++      )
++    return self.fk(
++      self.root_pos_w[frames],
++      self.root_quat_w[frames],
++      self.joint_pos[frames],
++      self.root_lin_vel_w[frames],
++      self.root_ang_vel_w[frames],
++      self.joint_vel[frames],
++    )
++
++  def clip_last_frame(self, frames: torch.Tensor) -> torch.Tensor:
++    """Last frame of the clip each frame belongs to."""
++    clip = torch.searchsorted(self.motion_ends, frames, right=True)
++    clip = clip.clamp(max=self.motion_ends.numel() - 1)
++    return self.motion_ends[clip] - 1
+ 
+ 
+ class MotionCommand(CommandTerm):
+@@ -78,9 +172,18 @@ class MotionCommand(CommandTerm):
+       device=self.device,
+     )
+ 
++    fk = ForwardKinematics(
++      env.sim.mj_model,
++      self.robot.indexing.body_ids.tolist(),
++      self.robot.indexing.joint_q_adr.tolist(),
++      self.body_indexes.tolist(),
++      device=self.device,
++    )
+     self.motion = MotionLoader(
+-      self.cfg.motion_file, self.body_indexes, device=self.device
++      self.cfg.motion_file, self.body_indexes, device=self.device, fk=fk
+     )
++    # [FencingRobot] Reset distribution over bins for sampling_mode="external".
++    self._external_probs: torch.Tensor | None = None
+     self.time_steps = torch.zeros(self.num_envs, dtype=torch.long, device=self.device)
+     self.body_pos_relative_w = torch.zeros(
+       self.num_envs, len(cfg.body_names), 3, device=self.device
+@@ -316,11 +419,45 @@ class MotionCommand(CommandTerm):
+     self.robot.write_root_state_to_sim(root_state, env_ids=env_ids)
+     self.robot.reset(env_ids=env_ids)
+ 
++  def set_sampling_distribution(self, weights: torch.Tensor) -> None:
++    """[FencingRobot] Reset distribution over the ``bin_count`` bins, used when
++    ``sampling_mode == "external"`` (the trainer owns the distribution)."""
++    weights = weights.to(self.device, torch.float32).flatten()
++    if weights.numel() != self.bin_count:
++      raise ValueError(f"expected {self.bin_count} bin weights, got {weights.numel()}")
++    self._external_probs = weights.clamp(min=0.0) / weights.clamp(min=0.0).sum()
++
++  def _external_sampling(self, env_ids: torch.Tensor):
++    """Bin from the external distribution (uniform until one is set), then a
++    uniform frame inside it; frame -> bin is ``frame * bin_count // total``."""
++    if self._external_probs is None:
++      self._uniform_sampling(env_ids)
++      return
++    probs = self._external_probs
++    bins = torch.multinomial(probs, len(env_ids), replacement=True)
++    u = sample_uniform(0.0, 1.0, (len(env_ids),), device=self.device)
++    total = self.motion.time_step_total
++    frames = ((bins.float() + u) * total / self.bin_count).long()
++    self.time_steps[env_ids] = frames.clamp(0, total - 1)
++    H = -(probs * (probs + 1e-12).log()).sum()
++    pmax, imax = probs.max(dim=0)
++    self.metrics["sampling_entropy"][:] = (
++      H / math.log(self.bin_count) if self.bin_count > 1 else 1.0
++    )
++    self.metrics["sampling_top1_prob"][:] = pmax
++    self.metrics["sampling_top1_bin"][:] = imax.float() / self.bin_count
++
+   def _resample_command(self, env_ids: torch.Tensor):
+     if self.cfg.sampling_mode == "start":
+-      self.time_steps[env_ids] = 0
++      # [FencingRobot] Multi-clip: the start of a uniformly drawn clip.
++      ends = self.motion.motion_ends
++      starts = torch.cat([ends.new_zeros(1), ends[:-1]])
++      clip = torch.randint(0, ends.numel(), (len(env_ids),), device=self.device)
++      self.time_steps[env_ids] = starts[clip]
+     elif self.cfg.sampling_mode == "uniform":
+       self._uniform_sampling(env_ids)
++    elif self.cfg.sampling_mode == "external":
++      self._external_sampling(env_ids)
+     else:
+       assert self.cfg.sampling_mode == "adaptive"
+       self._adaptive_sampling(env_ids)
+@@ -404,8 +541,16 @@ class MotionCommand(CommandTerm):
+       delta_ori_w, self.body_pos_w - anchor_pos_w_repeat
+     )
+ 
++  @property
++  def at_clip_end(self) -> torch.Tensor:
++    """[FencingRobot] True where ``time_steps`` is the last frame of its clip."""
++    return self.time_steps >= self.motion.clip_last_frame(self.time_steps)
++
+   def _update_command(self):
+-    self.time_steps += 1
++    # [FencingRobot] Advance one frame but stop at the clip's last frame (never
++    # bleed into the next concatenated clip); the motion_end termination ends
++    # the episode there.
++    self.time_steps += (~self.at_clip_end).long()
+     env_ids = torch.where(self.time_steps >= self.motion.time_step_total)[0]
+     if env_ids.numel() > 0:
+       self._resample_command(env_ids)
+@@ -584,7 +729,8 @@ class MotionCommand(CommandTerm):
+ 
+ @dataclass(kw_only=True)
+ class MotionCommandCfg(CommandTermCfg):
+-  motion_file: str
++  motion_file: str | list[str]
++  """[FencingRobot] A path, directory, glob, or list; clips are concatenated."""
+   anchor_body_name: str
+   body_names: tuple[str, ...]
+   entity_name: str
+@@ -595,7 +741,8 @@ class MotionCommandCfg(CommandTermCfg):
+   adaptive_lambda: float = 0.8
+   adaptive_uniform_ratio: float = 0.1
+   adaptive_alpha: float = 0.001
+-  sampling_mode: Literal["adaptive", "uniform", "start"] = "adaptive"
++  sampling_mode: Literal["adaptive", "uniform", "start", "external"] = "adaptive"
++  """[FencingRobot] "external": reset bins drawn from set_sampling_distribution()."""
+ 
+   @dataclass
+   class VizCfg:
+diff --git a/src/mjlab/tasks/tracking/mdp/terminations.py b/src/mjlab/tasks/tracking/mdp/terminations.py
+index 62d4452ef..c566cbaa0 100644
+--- a/src/mjlab/tasks/tracking/mdp/terminations.py
++++ b/src/mjlab/tasks/tracking/mdp/terminations.py
+@@ -84,3 +84,13 @@ def bad_motion_body_pos_z_only(
+     - command.robot_body_pos_w[:, body_indexes, -1]
+   )
+   return torch.any(error > threshold, dim=-1)
++
++
++def motion_end(env: ManagerBasedRlEnv, command_name: str = "motion") -> torch.Tensor:
++  """[FencingRobot] The reference reached the last frame of its clip.
++
++  Configure with ``time_out=True``: reaching the end of a clip truncates the
++  episode, it is not a failure.
++  """
++  command = cast(MotionCommand, env.command_manager.get_term(command_name))
++  return command.at_clip_end
+diff --git a/src/mjlab/tasks/tracking/tracking_env_cfg.py b/src/mjlab/tasks/tracking/tracking_env_cfg.py
+index 53275ef33..8674e48a3 100644
+--- a/src/mjlab/tasks/tracking/tracking_env_cfg.py
++++ b/src/mjlab/tasks/tracking/tracking_env_cfg.py
+@@ -256,6 +256,10 @@ def make_tracking_env_cfg() -> ManagerBasedRlEnvCfg:
+ 
+   terminations: dict[str, TerminationTermCfg] = {
+     "time_out": TerminationTermCfg(func=mdp.time_out, time_out=True),
++    # [FencingRobot] The official SuperMimic runner reads this term by name.
++    "motion_end": TerminationTermCfg(
++      func=mdp.motion_end, params={"command_name": "motion"}, time_out=True
++    ),
+     "anchor_pos": TerminationTermCfg(
+       func=mdp.bad_anchor_pos_z_only,
+       params={"command_name": "motion", "threshold": 0.25},
+diff --git a/src/mjlab/utils/forward_kinematics.py b/src/mjlab/utils/forward_kinematics.py
+new file mode 100644
+index 000000000..3ed860873
+--- /dev/null
++++ b/src/mjlab/utils/forward_kinematics.py
+@@ -0,0 +1,145 @@
++"""Differentiable forward kinematics of an articulated entity, in torch.
++
++Follows MuJoCo's ``mj_kinematics`` for a free-floating tree of hinge joints (a
++hinge turns by ``qpos - qpos0`` about its axis through its anchor) and propagates
++the body twist down the tree. Returns the world-frame pose and twist of each body
++frame origin, i.e. what mjlab exposes as ``body_link_{pos,quat,lin_vel,ang_vel}_w``.
++Batched over any leading dimensions and differentiable in every input.
++
++[FencingRobot] Not part of upstream mjlab v1.5.0: written for the official
++SuperMimic code, which imports it from the unreleased ``mjlab_research`` fork.
++"""
++
++from __future__ import annotations
++
++from collections.abc import Sequence
++
++import mujoco
++import torch
++
++from mjlab.utils.lab_api.math import quat_apply, quat_from_angle_axis, quat_mul
++
++
++class ForwardKinematics:
++  """Forward kinematics of one entity for a subset of its bodies.
++
++  Args:
++    mj_model: Compiled model that contains the entity.
++    body_ids: The entity's global body ids in entity order. Row 0 is the root,
++      which must carry the entity's free joint.
++    joint_q_adr: qpos addresses of the entity's joints in ``joint_pos`` column
++      order (``joint_vel`` uses the same column order).
++    body_indexes: Entity rows of the bodies to return, in output order.
++  """
++
++  def __init__(
++    self,
++    mj_model: mujoco.MjModel,
++    body_ids: Sequence[int] | torch.Tensor,
++    joint_q_adr: Sequence[int] | torch.Tensor,
++    body_indexes: Sequence[int] | torch.Tensor,
++    device: str | torch.device = "cpu",
++    dtype: torch.dtype = torch.float32,
++  ) -> None:
++    ids = [int(b) for b in body_ids]
++    row_of = {b: r for r, b in enumerate(ids)}
++    col_of = {int(a): c for c, a in enumerate(joint_q_adr)}
++    root = ids[0]
++    root_jnt = int(mj_model.body_jntadr[root])
++    if (
++      int(mj_model.body_jntnum[root]) != 1
++      or int(mj_model.jnt_type[root_jnt]) != mujoco.mjtJoint.mjJNT_FREE
++    ):
++      raise ValueError("The entity root must carry exactly one free joint.")
++
++    parents: list[int] = []
++    cols: list[int] = []
++    pos, quat, axis, anchor, qpos0 = [], [], [], [], []
++    for b in ids[1:]:
++      parent = int(mj_model.body_parentid[b])
++      if parent not in row_of or row_of[parent] >= row_of[b]:
++        raise ValueError(f"Body {b}: its parent must precede it in the entity.")
++      parents.append(row_of[parent])
++      pos.append(mj_model.body_pos[b].tolist())
++      quat.append(mj_model.body_quat[b].tolist())
++      njnt = int(mj_model.body_jntnum[b])
++      if njnt > 1:
++        raise ValueError(f"Body {b}: at most one joint per body is supported.")
++      if njnt == 1:
++        j = int(mj_model.body_jntadr[b])
++        if int(mj_model.jnt_type[j]) != mujoco.mjtJoint.mjJNT_HINGE:
++          raise ValueError(f"Body {b}: only hinge joints are supported.")
++        qadr = int(mj_model.jnt_qposadr[j])
++        cols.append(col_of[qadr])
++        axis.append(mj_model.jnt_axis[j].tolist())
++        anchor.append(mj_model.jnt_pos[j].tolist())
++        qpos0.append(float(mj_model.qpos0[qadr]))
++      else:
++        cols.append(-1)
++        axis.append([0.0, 0.0, 1.0])
++        anchor.append([0.0, 0.0, 0.0])
++        qpos0.append(0.0)
++
++    def t(x) -> torch.Tensor:
++      return torch.tensor(x, dtype=dtype, device=device)
++
++    self._parents = parents
++    self._cols = cols
++    self._pos, self._quat, self._axis, self._anchor = t(pos), t(quat), t(axis), t(anchor)
++    self._qpos0 = t(qpos0)
++    self.body_indexes = [int(i) for i in body_indexes]
++    self.num_bodies = len(self.body_indexes)
++
++  def __call__(
++    self,
++    root_pos: torch.Tensor,
++    root_quat: torch.Tensor,
++    joint_pos: torch.Tensor,
++    root_lin_vel: torch.Tensor,
++    root_ang_vel: torch.Tensor,
++    joint_vel: torch.Tensor,
++  ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
++    """World-frame body states from the root state and joint state.
++
++    Args:
++      root_pos, root_quat: Root body origin position and orientation (w, x, y, z),
++        shapes ``(..., 3)`` and ``(..., 4)``.
++      joint_pos, joint_vel: Shape ``(..., J)``, in ``joint_q_adr`` column order.
++      root_lin_vel, root_ang_vel: World-frame twist of the root body origin,
++        shape ``(..., 3)``.
++
++    Returns:
++      ``(pos (..., B, 3), quat (..., B, 4), lin_vel (..., B, 3),
++      ang_vel (..., B, 3))`` for the requested bodies.
++    """
++    xpos, xquat, lin, ang = [root_pos], [root_quat], [root_lin_vel], [root_ang_vel]
++    for i, (p, c) in enumerate(zip(self._parents, self._cols, strict=True)):
++      xp, qp, vp, wp = xpos[p], xquat[p], lin[p], ang[p]
++      x = xp + quat_apply(qp, self._pos[i].expand_as(xp))
++      q = quat_mul(qp, self._quat[i].expand_as(qp))
++      v_extra = None
++      w = wp
++      if c >= 0:
++        local_anchor = self._anchor[i].expand_as(xp)
++        local_axis = self._axis[i].expand_as(xp)
++        anchor_w = x + quat_apply(q, local_anchor)
++        angle = joint_pos[..., c] - self._qpos0[i]
++        q = quat_mul(q, quat_from_angle_axis(angle, local_axis))
++        x = anchor_w - quat_apply(q, local_anchor)
++        w_joint = quat_apply(q, local_axis) * joint_vel[..., c : c + 1]
++        w = wp + w_joint
++        v_extra = torch.linalg.cross(w_joint, x - anchor_w, dim=-1)
++      v = vp + torch.linalg.cross(wp, x - xp, dim=-1)
++      if v_extra is not None:
++        v = v + v_extra
++      xpos.append(x)
++      xquat.append(q)
++      lin.append(v)
++      ang.append(w)
++    rows = self.body_indexes
++    return (
++      torch.stack([xpos[r] for r in rows], dim=-2),
++      torch.stack([xquat[r] for r in rows], dim=-2),
++      torch.stack([lin[r] for r in rows], dim=-2),
++      torch.stack([ang[r] for r in rows], dim=-2),
++    )
+diff --git a/src/mjlab/utils/torch.py b/src/mjlab/utils/torch.py
+index 4275bf49b..18fe66887 100644
+--- a/src/mjlab/utils/torch.py
++++ b/src/mjlab/utils/torch.py
+@@ -18,7 +18,11 @@ def configure_torch_backends(allow_tf32: bool = True, deterministic: bool = Fals
+     See https://pytorch.org/docs/stable/notes/cuda.html#tf32-on-ampere for details.
+   """
+   torch_version = parse(torch.__version__.split("+")[0])  # Handle e.g., "2.9.0+cu118".
+-  if torch_version >= parse("2.9.0"):
++  # [FencingRobot] Use the legacy flags on every torch version: with the 2.9+
++  # fp32_precision API, torch 2.10's inductor (pad_mm) reads the legacy
++  # cuda.matmul.allow_tf32 getter, which raises "mix of the legacy and new APIs"
++  # and breaks the official SuperMimic's torch.compile. Same TF32 behaviour.
++  if False and torch_version >= parse("2.9.0"):
+     _configure_29(allow_tf32)
+   else:
+     _configure_pre29(allow_tf32)

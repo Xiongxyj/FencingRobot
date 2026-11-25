@@ -1,0 +1,27 @@
+__pycache__/
+*.egg-info/
+*.pyc
+.venv/
+build/
+logs/
+runs/
+wandb/
+*.pt
+*.ckpt
+*.orig
+data/raw/
+data/npz/
+
+# Local-only project and agent notes
+AGENT.md
+AGENTS.md
+memory/
+.agents/
+.codex/
+.aws/
+docs/HANDOFF.md
+docs/PROGRESS.md
+docs/RUNS.md
+docs/XiaoMind/
+experience.md
+.env*

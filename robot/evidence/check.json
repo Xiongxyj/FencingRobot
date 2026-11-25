@@ -1,0 +1,228 @@
+{
+ "protocol": "PROTOCOL sec.7",
+ "model": "C:\\FencingProject\\experiments\\retarget\\20261109_revo2_grasp_v1\\out\\model\\g1_revo2_epee.xml",
+ "C1": {
+  "nq": 36,
+  "package": "C:\\FencingProject\\experiments/retarget/20261109_g1_umr_v4/package",
+  "rubber_hand_left": false,
+  "one_weld_body": true,
+  "internal_contacts": 0,
+  "added_mass_kg": 0.9900004700000001,
+  "pass": true
+ },
+ "C2": {
+  "max_err_mm": 2.960056684818555e-06,
+  "pass_": true
+ },
+ "C3": {
+  "blade_dir_err_deg": 0.02886747451399102,
+  "solver_A1_deg": 0.02797645516693592
+ },
+ "R1_right_arm_torque_Nm": {
+  "stock_static": {
+   "right_shoulder_pitch_joint": {
+    "p50": 1.157727974785548,
+    "p99": 3.6725266408187522,
+    "limit": 25.0,
+    "frac_over_limit": 0.00055
+   },
+   "right_shoulder_roll_joint": {
+    "p50": 3.490425036651682,
+    "p99": 5.856884102928466,
+    "limit": 25.0,
+    "frac_over_limit": 0.00065
+   },
+   "right_shoulder_yaw_joint": {
+    "p50": 1.0203032661517275,
+    "p99": 1.802043348911893,
+    "limit": 25.0,
+    "frac_over_limit": 0.00045
+   },
+   "right_elbow_joint": {
+    "p50": 1.0951285065407133,
+    "p99": 1.7124967861985358,
+    "limit": 25.0,
+    "frac_over_limit": 0.0004
+   },
+   "right_wrist_roll_joint": {
+    "p50": 0.045691921514874445,
+    "p99": 0.14239155843697948,
+    "limit": 25.0,
+    "frac_over_limit": 0.0001
+   },
+   "right_wrist_pitch_joint": {
+    "p50": 0.29633624390227187,
+    "p99": 0.3911512295902431,
+    "limit": 5.0,
+    "frac_over_limit": 0.0003
+   },
+   "right_wrist_yaw_joint": {
+    "p50": 0.0812826734994051,
+    "p99": 0.16541591908142675,
+    "limit": 5.0,
+    "frac_over_limit": 5e-05
+   }
+  },
+  "new_static": {
+   "right_shoulder_pitch_joint": {
+    "p50": 4.069109532212934,
+    "p99": 8.067414597675388,
+    "limit": 25.0,
+    "frac_over_limit": 0.00175
+   },
+   "right_shoulder_roll_joint": {
+    "p50": 6.406276441765197,
+    "p99": 11.009164340063942,
+    "limit": 25.0,
+    "frac_over_limit": 0.0017
+   },
+   "right_shoulder_yaw_joint": {
+    "p50": 3.0479400451407246,
+    "p99": 5.393981297945735,
+    "limit": 25.0,
+    "frac_over_limit": 0.0016
+   },
+   "right_elbow_joint": {
+    "p50": 3.636416779268047,
+    "p99": 5.4197372271124635,
+    "limit": 25.0,
+    "frac_over_limit": 0.0016
+   },
+   "right_wrist_roll_joint": {
+    "p50": 0.38303564666094364,
+    "p99": 1.6200991654382233,
+    "limit": 25.0,
+    "frac_over_limit": 0.0009
+   },
+   "right_wrist_pitch_joint": {
+    "p50": 2.4726858327218357,
+    "p99": 3.0806338721029833,
+    "limit": 5.0,
+    "frac_over_limit": 0.0015
+   },
+   "right_wrist_yaw_joint": {
+    "p50": 1.0782232964700806,
+    "p99": 2.2855440182906395,
+    "limit": 5.0,
+    "frac_over_limit": 0.0014
+   }
+  },
+  "stock_dyn": {
+   "right_shoulder_pitch_joint": {
+    "p50": 1.6255606270512915,
+    "p99": 8.749206443067301,
+    "limit": 25.0,
+    "frac_over_limit": 0.00085
+   },
+   "right_shoulder_roll_joint": {
+    "p50": 3.6022691362761474,
+    "p99": 12.56447455555644,
+    "limit": 25.0,
+    "frac_over_limit": 0.00095
+   },
+   "right_shoulder_yaw_joint": {
+    "p50": 1.0552821980605398,
+    "p99": 4.325076284380803,
+    "limit": 25.0,
+    "frac_over_limit": 0.0006
+   },
+   "right_elbow_joint": {
+    "p50": 1.1907772467059154,
+    "p99": 4.475711122638272,
+    "limit": 25.0,
+    "frac_over_limit": 0.00055
+   },
+   "right_wrist_roll_joint": {
+    "p50": 0.3064242856459757,
+    "p99": 0.846123420027733,
+    "limit": 25.0,
+    "frac_over_limit": 0.0001
+   },
+   "right_wrist_pitch_joint": {
+    "p50": 0.33463680536463,
+    "p99": 1.2845951992900897,
+    "limit": 5.0,
+    "frac_over_limit": 0.0003
+   },
+   "right_wrist_yaw_joint": {
+    "p50": 0.32062347382536194,
+    "p99": 1.071565281609636,
+    "limit": 5.0,
+    "frac_over_limit": 0.00015
+   }
+  },
+  "new_dyn": {
+   "right_shoulder_pitch_joint": {
+    "p50": 4.588792762357647,
+    "p99": 22.724837430497896,
+    "limit": 25.0,
+    "frac_over_limit": 0.00785
+   },
+   "right_shoulder_roll_joint": {
+    "p50": 6.448498032641655,
+    "p99": 27.067010662782575,
+    "limit": 25.0,
+    "frac_over_limit": 0.0135
+   },
+   "right_shoulder_yaw_joint": {
+    "p50": 3.4719424738915863,
+    "p99": 19.411895714614168,
+    "limit": 25.0,
+    "frac_over_limit": 0.00445
+   },
+   "right_elbow_joint": {
+    "p50": 4.094320665607281,
+    "p99": 20.772920281425453,
+    "limit": 25.0,
+    "frac_over_limit": 0.00605
+   },
+   "right_wrist_roll_joint": {
+    "p50": 0.9966854960982942,
+    "p99": 8.109824725419447,
+    "limit": 25.0,
+    "frac_over_limit": 0.0012
+   },
+   "right_wrist_pitch_joint": {
+    "p50": 2.748576232465275,
+    "p99": 13.861201028936172,
+    "limit": 5.0,
+    "frac_over_limit": 0.1792
+   },
+   "right_wrist_yaw_joint": {
+    "p50": 1.7528630161092758,
+    "p99": 12.494369586071809,
+    "limit": 5.0,
+    "frac_over_limit": 0.1021
+   }
+  }
+ },
+ "R2": {
+  "frames": 20000,
+  "frames_pen_gt_1cm": 14,
+  "frac": 0.0007,
+  "by_pair": {
+   "epee_guard x right_hip_yaw_link": 7,
+   "epee_guard x right_hip_roll_link": 4,
+   "epee_guard x right_knee_link": 3,
+   "revo2_right_pinky_proximal_link_collision x right_hip_yaw_link": 2,
+   "revo2_right_pinky_distal_link_collision x right_hip_yaw_link": 2,
+   "epee_grip x right_hip_yaw_link": 2,
+   "revo2_right_base_link_collision x right_hip_yaw_link": 2,
+   "epee_blade x right_hip_yaw_link": 2,
+   "epee_grip x right_knee_link": 2,
+   "revo2_right_pinky_touch_link_collision x right_hip_yaw_link": 1,
+   "epee_guard x right_hip_pitch_link": 1,
+   "revo2_right_index_distal_link_collision x right_hip_roll_link": 1,
+   "revo2_right_index_touch_link_collision x right_hip_roll_link": 1,
+   "epee_grip x right_hip_roll_link": 1,
+   "revo2_right_base_link_collision x right_knee_link": 1,
+   "revo2_right_pinky_distal_link_collision x right_knee_link": 1,
+   "revo2_right_pinky_touch_link_collision x right_knee_link": 1,
+   "epee_blade x right_knee_link": 1,
+   "revo2_right_thumb_proximal_link_collision x right_hip_yaw_link": 1,
+   "revo2_right_thumb_distal_link_collision x right_hip_yaw_link": 1
+  },
+  "tip_below_floor_frac": 0.00595,
+  "note": "contacts between the new geoms and the rest of G1 (floor excluded); mesh collisions use convex hulls"
+ }
+}

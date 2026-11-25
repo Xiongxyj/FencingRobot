@@ -1,0 +1,579 @@
+{
+ "what": "accepted Revo2 grasp + epee merged into G1 right_wrist_yaw_link (frame of that link)",
+ "source": {
+  "experiment": "experiments/retarget/20261109_revo2_grasp_v1",
+  "grasp_json_best_start": 121,
+  "user_qa": "2026-11-10 10:44 passed",
+  "q_full_rad": {
+   "right_thumb_metacarpal_joint": 0.2857484817504883,
+   "right_thumb_proximal_joint": 0.7998145818710327,
+   "right_index_proximal_joint": 0.44053566455841064,
+   "right_middle_proximal_joint": 0.8911648392677307,
+   "right_ring_proximal_joint": 1.133868932723999,
+   "right_pinky_proximal_joint": 1.1783740520477295,
+   "right_thumb_distal_joint": 0.8753970598578453,
+   "right_index_distal_joint": 0.49824583661556243,
+   "right_middle_distal_joint": 1.1291058513522148,
+   "right_ring_distal_joint": 1.4196039037704469,
+   "right_pinky_distal_joint": 1.497713420152664
+  },
+  "mount": {
+   "parent": "right_wrist_yaw_link",
+   "xyz_m": [
+    0.0415,
+    -0.003,
+    0.0
+   ],
+   "R_parent_from_base": [
+    [
+     0,
+     0,
+     1
+    ],
+    [
+     1,
+     0,
+     0
+    ],
+    [
+     0,
+     1,
+     0
+    ]
+   ],
+   "status": "ASSUMPTION: origin = the stock rubber-hand attachment point of the G1 URDF/MJCF; axes = Revo2 fingers (+z) along the G1 forearm (+x), Revo2 palm normal (+x) = rubber-hand palm side (+y), thumb (+y) up (+z). No adapter thickness. Replace with the real flange drawing when it exists (then re-run everything)."
+  },
+  "weapon": {
+   "blade_length_m": 0.9,
+   "blade_radius_m": 0.004,
+   "mass_kg": 0.77,
+   "com_hilt_m": [
+    0.1,
+    0.0,
+    0.0
+   ],
+   "status": "ASSUMPTION: FIE epee maximum mass 770 g; COM 10 cm in front of the guard apex is a guess - weigh / balance the real weapon and update"
+  }
+ },
+ "link": "right_wrist_yaw_link",
+ "remove_geoms_matching": [
+  "right_rubber_hand",
+  "right_hand_collision"
+ ],
+ "inertial": {
+  "mass": 1.2445764700000002,
+  "pos": [
+   0.18873459460710895,
+   0.045063932833441,
+   0.05594186027137279
+  ],
+  "fullinertia": [
+   0.016998612603119356,
+   0.058574329668619314,
+   0.05285384981185933,
+   -0.016041812500880437,
+   -0.022845312902997742,
+   -0.007888759448910517
+  ],
+  "parts": {
+   "wrist_yaw_bare": 0.084576,
+   "revo2_right_base_link": 0.238,
+   "revo2_right_thumb_metacarpal_link": 0.01,
+   "revo2_right_index_proximal_link": 0.009,
+   "revo2_right_middle_proximal_link": 0.009,
+   "revo2_right_ring_proximal_link": 0.009,
+   "revo2_right_pinky_proximal_link": 0.009,
+   "revo2_right_thumb_proximal_link": 0.05,
+   "revo2_right_index_distal_link": 0.009,
+   "revo2_right_middle_distal_link": 0.009,
+   "revo2_right_ring_distal_link": 0.009,
+   "revo2_right_pinky_distal_link": 0.009,
+   "revo2_right_thumb_distal_link": 0.01,
+   "revo2_right_index_touch_link": 0.002,
+   "revo2_right_middle_touch_link": 0.002,
+   "revo2_right_ring_touch_link": 0.002,
+   "revo2_right_pinky_touch_link": 0.002,
+   "revo2_right_thumb_touch_link": 0.002,
+   "epee": 0.77
+  }
+ },
+ "visual": [
+  {
+   "name": "revo2_right_base_link_visual",
+   "mesh": "revo2_right_base_link.STL",
+   "pos": [
+    0.0415,
+    -0.003,
+    0.0
+   ],
+   "quat_wxyz": [
+    0.5,
+    0.5,
+    0.5,
+    0.5
+   ],
+   "rgba": [
+    0.8,
+    0.82,
+    0.85,
+    1
+   ]
+  },
+  {
+   "name": "revo2_right_thumb_metacarpal_link_visual",
+   "mesh": "revo2_right_thumb_metacarpal_link.STL",
+   "pos": [
+    0.069325,
+    0.002619,
+    0.019867
+   ],
+   "quat_wxyz": [
+    0.6092338530552143,
+    0.3589346908443061,
+    0.6092338530552143,
+    0.3589346908443061
+   ],
+   "rgba": [
+    0.8,
+    0.82,
+    0.85,
+    1
+   ]
+  },
+  {
+   "name": "revo2_right_index_proximal_link_visual",
+   "mesh": "revo2_right_index_proximal_link.STL",
+   "pos": [
+    0.12237600000000001,
+    -0.0051181,
+    0.029568
+   ],
+   "quat_wxyz": [
+    0.3912803883510069,
+    0.2665262180762337,
+    0.6514871233330737,
+    0.5928135970952941
+   ],
+   "rgba": [
+    0.8,
+    0.82,
+    0.85,
+    1
+   ]
+  },
+  {
+   "name": "revo2_right_middle_proximal_link_visual",
+   "mesh": "revo2_right_middle_proximal_link.STL",
+   "pos": [
+    0.126493,
+    -0.0075767000000000004,
+    0.010051
+   ],
+   "quat_wxyz": [
+    0.20331669962652782,
+    0.1670187405766466,
+    0.6962045964673609,
+    0.667881890611571
+   ],
+   "rgba": [
+    0.8,
+    0.82,
+    0.85,
+    1
+   ]
+  },
+  {
+   "name": "revo2_right_ring_proximal_link_visual",
+   "mesh": "revo2_right_ring_proximal_link.STL",
+   "pos": [
+    0.125482,
+    -0.0076709000000000005,
+    -0.010037
+   ],
+   "quat_wxyz": [
+    0.08531285099574105,
+    0.11793333431862102,
+    0.6831419846013046,
+    0.7156329191606978
+   ],
+   "rgba": [
+    0.8,
+    0.82,
+    0.85,
+    1
+   ]
+  },
+  {
+   "name": "revo2_right_pinky_proximal_link_visual",
+   "mesh": "revo2_right_pinky_proximal_link.STL",
+   "pos": [
+    0.120194,
+    -0.0053565999999999996,
+    -0.029366
+   ],
+   "quat_wxyz": [
+    0.03564248869951001,
+    0.13097417156190458,
+    0.6489937962927521,
+    0.7485869567101071
+   ],
+   "rgba": [
+    0.8,
+    0.82,
+    0.85,
+    1
+   ]
+  },
+  {
+   "name": "revo2_right_thumb_proximal_link_visual",
+   "mesh": "revo2_right_thumb_proximal_visual_link.STL",
+   "pos": [
+    0.069325,
+    0.009514308337715455,
+    0.03231136627264851
+   ],
+   "quat_wxyz": [
+    0.23441450421859472,
+    0.5722596489432397,
+    0.7848467447815124,
+    0.03980353764647382
+   ],
+   "rgba": [
+    0.8,
+    0.82,
+    0.85,
+    1
+   ]
+  },
+  {
+   "name": "revo2_right_index_distal_link_visual",
+   "mesh": "revo2_right_index_distal_link.STL",
+   "pos": [
+    0.14880252804361105,
+    0.012925032347504063,
+    0.029857811405387295
+   ],
+   "quat_wxyz": [
+    0.21857440007102458,
+    0.11213770594094453,
+    0.7278468560147183,
+    0.6402259919195598
+   ],
+   "rgba": [
+    0.8,
+    0.82,
+    0.85,
+    1
+   ]
+  },
+  {
+   "name": "revo2_right_middle_distal_link_visual",
+   "mesh": "revo2_right_middle_distal_link.STL",
+   "pos": [
+    0.14522231216514178,
+    0.024319130984313514,
+    0.009118888611389344
+   ],
+   "quat_wxyz": [
+    0.2007284146204491,
+    0.21624021398315021,
+    -0.6969552525472964,
+    -0.6536066472789401
+   ],
+   "rgba": [
+    0.8,
+    0.82,
+    0.85,
+    1
+   ]
+  },
+  {
+   "name": "revo2_right_ring_distal_link_visual",
+   "mesh": "revo2_right_ring_distal_link.STL",
+   "pos": [
+    0.13546944366522104,
+    0.025846336456431616,
+    -0.008678386972796166
+   ],
+   "quat_wxyz": [
+    0.3804833788032013,
+    0.3769148453361496,
+    -0.5737539996588522,
+    -0.6196563125597899
+   ],
+   "rgba": [
+    0.8,
+    0.82,
+    0.85,
+    1
+   ]
+  },
+  {
+   "name": "revo2_right_pinky_distal_link_visual",
+   "mesh": "revo2_right_pinky_distal_link.STL",
+   "pos": [
+    0.12722228401175903,
+    0.022550682636721057,
+    -0.025790136512082715
+   ],
+   "quat_wxyz": [
+    0.41572916139257693,
+    0.4137049838995482,
+    -0.499632463912222,
+    -0.6374832167747646
+   ],
+   "rgba": [
+    0.8,
+    0.82,
+    0.85,
+    1
+   ]
+  },
+  {
+   "name": "revo2_right_thumb_distal_link_visual",
+   "mesh": "revo2_right_thumb_distal_link.STL",
+   "pos": [
+    0.11506478199433431,
+    0.02729150388626278,
+    0.04951147271242033
+   ],
+   "quat_wxyz": [
+    0.0021283063331793586,
+    0.618406610498983,
+    0.7422559771234493,
+    -0.2581178002924729
+   ],
+   "rgba": [
+    0.8,
+    0.82,
+    0.85,
+    1
+   ]
+  },
+  {
+   "name": "revo2_right_index_touch_link_visual",
+   "mesh": "revo2_right_index_touch_link.STL",
+   "pos": [
+    0.1468157994475583,
+    0.03992426207225214,
+    0.025353666452579242
+   ],
+   "quat_wxyz": [
+    0.05844197638109603,
+    0.0035932914106621273,
+    0.9870734595779075,
+    -0.1491898423164625
+   ],
+   "rgba": [
+    0.8,
+    0.82,
+    0.85,
+    1
+   ]
+  },
+  {
+   "name": "revo2_right_middle_touch_link_visual",
+   "mesh": "revo2_right_middle_touch_link.STL",
+   "pos": [
+    0.11707215224726014,
+    0.037228254425593695,
+    0.007344307808349766
+   ],
+   "quat_wxyz": [
+    0.35925866992647204,
+    0.36412247528006964,
+    -0.6300569248662908,
+    -0.584274167242238
+   ],
+   "rgba": [
+    0.8,
+    0.82,
+    0.85,
+    1
+   ]
+  },
+  {
+   "name": "revo2_right_ring_touch_link_visual",
+   "mesh": "revo2_right_ring_touch_link.STL",
+   "pos": [
+    0.10533965363968417,
+    0.022942553499886914,
+    -0.007651615492316216
+   ],
+   "quat_wxyz": [
+    0.5049329756782364,
+    0.5122778996835092,
+    -0.4679785718841752,
+    -0.5134297418594115
+   ],
+   "rgba": [
+    0.8,
+    0.82,
+    0.85,
+    1
+   ]
+  },
+  {
+   "name": "revo2_right_pinky_touch_link_visual",
+   "mesh": "revo2_right_pinky_touch_link.STL",
+   "pos": [
+    0.10293320318072,
+    0.015523161745881985,
+    -0.024013066307484014
+   ],
+   "quat_wxyz": [
+    0.5217259241244523,
+    0.552231537555788,
+    -0.3876408063190192,
+    -0.5220890674028688
+   ],
+   "rgba": [
+    0.8,
+    0.82,
+    0.85,
+    1
+   ]
+  },
+  {
+   "name": "revo2_right_thumb_touch_link_visual",
+   "mesh": "revo2_right_thumb_touch_link.STL",
+   "pos": [
+    0.12531567389558249,
+    0.025735224383253024,
+    0.03760906106328774
+   ],
+   "quat_wxyz": [
+    0.022762749544285837,
+    0.6179911996378863,
+    0.7504557544348285,
+    -0.23320569255265394
+   ],
+   "rgba": [
+    0.8,
+    0.82,
+    0.85,
+    1
+   ]
+  },
+  {
+   "name": "epee_grip_visual",
+   "mesh": "epee_grip.stl",
+   "pos": [
+    0.1650225945711136,
+    0.04348838192224502,
+    0.045505721122026443
+   ],
+   "quat_wxyz": [
+    0.962070962376822,
+    -0.07687505154539193,
+    -0.2283598747558166,
+    0.12791191266937105
+   ],
+   "rgba": [
+    0.55,
+    0.3,
+    0.15,
+    1
+   ]
+  },
+  {
+   "name": "epee_guard_visual",
+   "mesh": "epee_guard.stl",
+   "pos": [
+    0.1650225945711136,
+    0.04348838192224502,
+    0.045505721122026443
+   ],
+   "quat_wxyz": [
+    0.962070962376822,
+    -0.07687505154539193,
+    -0.2283598747558166,
+    0.12791191266937105
+   ],
+   "rgba": [
+    0.85,
+    0.7,
+    0.2,
+    1
+   ]
+  }
+ ],
+ "collision": [
+  {
+   "name": "right_hand_collision",
+   "type": "capsule",
+   "fromto": [
+    0.09044610288203367,
+    0.0012980991804036317,
+    -0.01283334725146067,
+    0.13183001659410074,
+    0.024937679311648316,
+    0.02184447578616147
+   ],
+   "size": [
+    0.042763206898108315
+   ],
+   "note": "fist + grip, PCA capsule, radius = p95 radial distance; replaces the stock right_hand_collision"
+  },
+  {
+   "name": "epee_guard_collision",
+   "type": "cylinder",
+   "pos": [
+    0.14560553020568437,
+    0.03716068314203824,
+    0.03606178752804068
+   ],
+   "quat_wxyz": [
+    0.841761706424654,
+    -0.1448062552398811,
+    0.51881210260434,
+    0.036088505534604576
+   ],
+   "size": [
+    0.06750000268220901,
+    0.02250000089406967
+   ],
+   "note": "guard bell as a cylinder (axis = blade), rim radius, half length = depth / 2"
+  },
+  {
+   "name": "epee_blade_collision",
+   "type": "capsule",
+   "fromto": [
+    0.1650225945711136,
+    0.04348838192224502,
+    0.045505721122026443,
+    0.9417051383256912,
+    0.29659632307291034,
+    0.42326304987072944
+   ],
+   "size": [
+    0.004
+   ]
+  }
+ ],
+ "sites": [
+  {
+   "name": "epee_tip",
+   "pos": [
+    0.9417051383256912,
+    0.29659632307291034,
+    0.42326304987072944
+   ]
+  },
+  {
+   "name": "epee_guard_apex",
+   "pos": [
+    0.1650225945711136,
+    0.04348838192224502,
+    0.045505721122026443
+   ]
+  }
+ ],
+ "hand_capsule_coverage": 0.9499961123446018,
+ "blade_dir_wy": [
+  0.8629806041717529,
+  0.2812310457229614,
+  0.41973036527633667
+ ],
+ "blade_target_wy": null
+}

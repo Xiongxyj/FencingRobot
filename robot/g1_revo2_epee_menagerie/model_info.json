@@ -1,0 +1,55 @@
+{
+ "xml": "C:\\FencingProject\\experiments\\retarget\\20261109_revo2_grasp_v1\\out\\model\\g1_revo2_epee.xml",
+ "q_full": {
+  "right_thumb_metacarpal_joint": 0.2857484817504883,
+  "right_thumb_proximal_joint": 0.7998145818710327,
+  "right_index_proximal_joint": 0.44053566455841064,
+  "right_middle_proximal_joint": 0.8911648392677307,
+  "right_ring_proximal_joint": 1.133868932723999,
+  "right_pinky_proximal_joint": 1.1783740520477295,
+  "right_thumb_distal_joint": 0.8753970598578453,
+  "right_index_distal_joint": 0.49824583661556243,
+  "right_middle_distal_joint": 1.1291058513522148,
+  "right_ring_distal_joint": 1.4196039037704469,
+  "right_pinky_distal_joint": 1.497713420152664
+ },
+ "mount": {
+  "parent": "right_wrist_yaw_link",
+  "xyz_m": [
+   0.0415,
+   -0.003,
+   0.0
+  ],
+  "R_parent_from_base": [
+   [
+    0,
+    0,
+    1
+   ],
+   [
+    1,
+    0,
+    0
+   ],
+   [
+    0,
+    1,
+    0
+   ]
+  ],
+  "status": "ASSUMPTION: origin = the stock rubber-hand attachment point of the G1 URDF/MJCF; axes = Revo2 fingers (+z) along the G1 forearm (+x), Revo2 palm normal (+x) = rubber-hand palm side (+y), thumb (+y) up (+z). No adapter thickness. Replace with the real flange drawing when it exists (then re-run everything)."
+ },
+ "weapon": {
+  "blade_length_m": 0.9,
+  "blade_radius_m": 0.004,
+  "mass_kg": 0.77,
+  "com_hilt_m": [
+   0.1,
+   0.0,
+   0.0
+  ],
+  "status": "ASSUMPTION: FIE epee maximum mass 770 g; COM 10 cm in front of the guard apex is a guess - weigh / balance the real weapon and update"
+ },
+ "grasp": "C:\\FencingProject\\experiments\\retarget\\20261109_revo2_grasp_v1\\out\\grasp.json",
+ "note": "fingers frozen (no finger joints); qpos = root 7 + 29 G1 joints, identical order to g1_umr packages"
+}

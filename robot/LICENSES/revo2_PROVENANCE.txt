@@ -1,0 +1,1 @@
+source: https://github.com/BrainCoTech/revo2_description @ 92cc697c7fa691db59404ce52344f3969a5ef7a6 (2026-08-20), Apache-2.0, unmodified copy (.git removed), fetched 2026-11-09

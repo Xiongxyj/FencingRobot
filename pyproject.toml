@@ -1,0 +1,13 @@
+[project]
+name = "fencingrobot"
+version = "0.1.0"
+description = "FencingProject training side: G1 fencing motion data, G1 + Revo2 + epee robot, tools for SuperMimic / mjlab"
+requires-python = ">=3.10"
+dependencies = ["numpy", "scipy", "mujoco>=3.2"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["fencingrobot"]
